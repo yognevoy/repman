@@ -15,6 +15,8 @@ services:
       POSTGRES_DB: main
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    networks:
+      - repman
 
   app:
     << : *restart_policy
@@ -35,6 +37,8 @@ services:
       - app-var:/app/var
       - /app/var/cache
       - app-public:/app/public
+    networks:
+      - repman
     depends_on:
       - database
 
@@ -46,6 +50,8 @@ services:
     volumes:
       - app-var:/app/var
       - /app/var/cache
+    networks:
+      - repman
     depends_on:
       - app
 
@@ -58,6 +64,8 @@ services:
       - app-var:/app/var
       - /app/var/cache
       - docker-crontabs:/var/spool/cron/crontabs
+    networks:
+      - repman
     depends_on:
       - app
 
@@ -74,6 +82,7 @@ services:
       - docker-nginx-ssl-certs:/etc/ssl/certs
       - docker-nginx-ssl-private:/etc/ssl/private
     networks:
+      - repman
       - webproxy
     environment:
       - VIRTUAL_HOST=${APP_HOST:-localhost}
@@ -81,6 +90,8 @@ services:
       - LETSENCRYPT_EMAIL=${EMAIL:-admin@example.com}
 
 networks:
+  repman:
+    driver: bridge
   webproxy:
     external: true
 
