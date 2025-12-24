@@ -76,6 +76,16 @@ services:
       - docker-nginx-scripts:/nginx
       - docker-nginx-ssl-certs:/etc/ssl/certs
       - docker-nginx-ssl-private:/etc/ssl/private
+    networks:
+      - webproxy
+    environment:
+      - VIRTUAL_HOST=${APP_HOST:-localhost}
+      - LETSENCRYPT_HOST=${APP_HOST:-localhost}
+      - LETSENCRYPT_EMAIL=${EMAIL:-admin@example.com}
+
+networks:
+  webproxy:
+    external: true
 
 volumes:
   postgres-data:
