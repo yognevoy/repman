@@ -22,7 +22,10 @@ services:
     sysctls:
       net.core.somaxconn: 2048
     command: >
-      bash -c 'bin/console d:m:m --no-interaction &&
+      bash -c 'chmod -R 777 /app/var &&
+      touch /app/var/log/${APP_ENV}.log &&
+      chmod 666 /app/var/log/${APP_ENV}.log &&
+      bin/console d:m:m --no-interaction &&
       bin/console messenger:setup-transports --no-interaction &&
       bin/console repman:security:update-db &&
       bin/console assets:install &&
