@@ -87,8 +87,8 @@ services:
     environment:
       - ENVIRONMENT=${APP_ENV:-prod}
       - DOMAIN=${APP_HOST:-localhost}
-      - VIRTUAL_HOST=${APP_HOST:-localhost}
-      - LETSENCRYPT_HOST=${APP_HOST:-localhost}
+      - VIRTUAL_HOST=${APP_HOST:-localhost},${SUBDOMAINS:-}
+      - LETSENCRYPT_HOST=${APP_HOST:-localhost},${SUBDOMAINS:-}
       - LETSENCRYPT_EMAIL=${EMAIL:-admin@example.com}
 
 networks:
