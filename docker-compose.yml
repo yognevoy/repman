@@ -34,6 +34,7 @@ services:
       php-fpm'
     env_file: .env.docker
     volumes:
+      - .:/app
       - app-var:/app/var
       - /app/var/cache
       - app-public:/app/public
