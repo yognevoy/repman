@@ -27,6 +27,7 @@ services:
       bash -c 'chmod -R 777 /app/var &&
       touch /app/var/log/${APP_ENV}.log &&
       chmod 666 /app/var/log/${APP_ENV}.log &&
+      chmod 666 /app/var/dev/ &&
       bin/console d:m:m --no-interaction &&
       bin/console messenger:setup-transports --no-interaction &&
       bin/console repman:security:update-db &&
@@ -36,7 +37,6 @@ services:
     volumes:
       - .:/app
       - app-var:/app/var
-      - /app/var/cache
       - app-public:/app/public
     networks:
       - repman
@@ -50,7 +50,6 @@ services:
     env_file: .env.docker
     volumes:
       - app-var:/app/var
-      - /app/var/cache
     networks:
       - repman
     depends_on:
@@ -63,7 +62,6 @@ services:
     env_file: .env.docker
     volumes:
       - app-var:/app/var
-      - /app/var/cache
       - docker-crontabs:/var/spool/cron/crontabs
     networks:
       - repman
