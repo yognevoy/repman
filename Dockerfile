@@ -1,6 +1,7 @@
 FROM php:8.0.19-fpm-alpine
 
 ARG TIMEZONE="UTC"
+ARG APP_ENV="prod"
 
 SHELL ["sh", "-eo", "pipefail", "-c"]
 
@@ -39,6 +40,12 @@ WORKDIR /app
 
 COPY . .
 
-ENV APP_ENV=prod
+ENV APP_ENV=${APP_ENV}
 
-RUN composer install --optimize-autoloader --no-dev; composer clear-cache
+# install dependencies based on environment
+RUN if [ "$APP_ENV" = "dev" ] ; then \
+        composer install --optimize-autoloader ; \
+    else \
+        composer install --optimize-autoloader --no-dev ; \
+    fi && \
+    composer clear-cache
