@@ -16,6 +16,16 @@
 {% block content %}
 
     {% if package.name %}
+        {% if package.isArchived %}
+            <div class="row">
+                <div class="col-12">
+                    <div class="alert alert-warning">
+                        <h4 class="alert-title">Archived Package</h4>
+                        <div class="text-muted">This package has been archived and is no longer available for installation.</div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
         {% if package.isAbandoned %}
             <div class="row">
                 <div class="col-12">
