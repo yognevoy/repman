@@ -48,6 +48,27 @@
                     >
                         {% include 'svg/edit.svg' %} Edit
                 </a>
+                {% if package.isArchived %}
+                    <a
+                        class="dropdown-item"
+                        data-target="confirmation"
+                        data-action="{{ path('organization_package_unarchive', {organization: organization.alias, package: package.id }) }}"
+                        data-method="POST"
+                        href="#"
+                    >
+                        {% include 'svg/unarchive.svg' %} Unarchive
+                    </a>
+                {% else %}
+                    <a
+                        class="dropdown-item"
+                        data-target="confirmation"
+                        data-action="{{ path('organization_package_archive', {organization: organization.alias, package: package.id }) }}"
+                        data-method="POST"
+                        href="#"
+                    >
+                        {% include 'svg/archive.svg' %} Archive
+                    </a>
+                {% endif %}
                 <a
                         class="dropdown-item"
                         data-target="confirmation"
