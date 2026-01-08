@@ -14,6 +14,8 @@ use Buddy\Repman\Message\Organization\Package\AddGitHubHook;
 use Buddy\Repman\Message\Organization\Package\AddGitLabHook;
 use Buddy\Repman\Message\Organization\Package\Update;
 use Buddy\Repman\Message\Organization\SynchronizePackage;
+use Buddy\Repman\Message\Organization\ArchivePackage;
+use Buddy\Repman\Message\Organization\UnarchivePackage;
 use Buddy\Repman\Query\User\Model\Organization;
 use Buddy\Repman\Query\User\Model\Package;
 use Buddy\Repman\Security\Model\User;
@@ -121,6 +123,38 @@ final class PackageController extends AbstractController
         $this->messageBus->dispatch(new SynchronizePackage($package->id()));
 
         $this->addFlash('success', 'Package will be synchronized in the background');
+
+        return $this->redirectToRoute('organization_packages', ['organization' => $organization->alias()]);
+    }
+
+    /**
+     * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
+     * @Route("/organization/{organization}/package/{package}/archive", name="organization_package_archive", methods={"POST"}, requirements={"organization"="%organization_pattern%","package"="%uuid_pattern%"})
+     */
+    public function archivePackage(Organization $organization, Package $package): Response
+    {
+        $this->messageBus->dispatch(new ArchivePackage(
+            $package->id(),
+            $organization->id()
+        ));
+
+        $this->addFlash('success', 'Package has been successfully archived');
+
+        return $this->redirectToRoute('organization_packages', ['organization' => $organization->alias()]);
+    }
+
+    /**
+     * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
+     * @Route("/organization/{organization}/package/{package}/unarchive", name="organization_package_unarchive", methods={"POST"}, requirements={"organization"="%organization_pattern%","package"="%uuid_pattern%"})
+     */
+    public function unarchivePackage(Organization $organization, Package $package): Response
+    {
+        $this->messageBus->dispatch(new UnarchivePackage(
+            $package->id(),
+            $organization->id()
+        ));
+
+        $this->addFlash('success', 'Package has been successfully unarchived');
 
         return $this->redirectToRoute('organization_packages', ['organization' => $organization->alias()]);
     }
