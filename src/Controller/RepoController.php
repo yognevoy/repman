@@ -8,6 +8,7 @@ use Buddy\Repman\Message\Organization\AddDownload;
 use Buddy\Repman\Query\User\Model\Organization;
 use Buddy\Repman\Query\User\Model\PackageName;
 use Buddy\Repman\Query\User\PackageQuery;
+use Buddy\Repman\Query\User\PackageQuery\Filter;
 use Buddy\Repman\Service\Organization\PackageManager;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -43,8 +44,14 @@ final class RepoController extends AbstractController
      */
     public function packages(Request $request, Organization $organization): JsonResponse
     {
-        $packageNames = $this->packageQuery->getAllNames($organization->id());
-        [$lastModified, $packages] = $this->packageManager->findProviders($organization->alias(), $packageNames);
+        $packageNames = $this->packageQuery->getAllNames(
+            $organization->id(),
+            (new Filter())->setArchived(false)
+        );
+        [$lastModified, $packages] = $this->packageManager->findProviders(
+            $organization->alias(),
+            $packageNames
+        );
 
         $response = (new JsonResponse([
             'packages' => $packages,
@@ -84,6 +91,11 @@ final class RepoController extends AbstractController
      */
     public function distribution(Organization $organization, string $package, string $version, string $ref, string $type): StreamedResponse
     {
+        // Check if the requested package is not archived
+        if (!$this->packageQuery->isActiveByName($organization->id(), $package)) {
+            throw new NotFoundHttpException('This distribution file can not be found or downloaded from origin url.');
+        }
+
         $filename = $this->packageManager
             ->distFilename($organization->alias(), $package, $version, $ref, $type)
             ->getOrElseThrow(new NotFoundHttpException('This distribution file can not be found or downloaded from origin url.'));
@@ -169,6 +181,11 @@ final class RepoController extends AbstractController
      */
     public function providerV2(Request $request, Organization $organization, string $package): JsonResponse
     {
+        // Check if the requested package is not archived
+        if (!$this->packageQuery->isActiveByName($organization->id(), $package)) {
+            throw new NotFoundHttpException();
+        }
+
         [$lastModified, $providerData] = $this->packageManager->findProviders(
             $organization->alias(),
             [new PackageName('', $package)]
@@ -193,7 +210,11 @@ final class RepoController extends AbstractController
     private function getPackageNameMap(string $organizationId): array
     {
         $map = [];
-        foreach ($this->packageQuery->getAllNames($organizationId) as $package) {
+        $packageNames = $this->packageQuery->getAllNames(
+            $organizationId,
+            (new Filter())->setArchived(false)
+        );
+        foreach ($packageNames as $package) {
             $map[$package->name()] = $package->id();
         }
 
