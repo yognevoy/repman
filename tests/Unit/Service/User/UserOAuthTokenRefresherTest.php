@@ -30,6 +30,6 @@ class UserOAuthTokenRefresherTest extends TestCase
         $refresher = new UserOAuthTokenRefresher($oauth);
 
         self::assertEquals(new AccessToken('new-token'), $refresher->refresh('github', 'refresh-token'));
-        self::assertEquals(new AccessToken('new-token', (new \DateTimeImmutable())->setTimestamp(time() + 3600)), $refresher->refresh('github', 'refresh-token'));
+        self::assertEquals(new AccessToken('new-token', 'refresh-token', (new \DateTimeImmutable())->setTimestamp(time() + 3600)), $refresher->refresh('github', 'refresh-token'));
     }
 }
