@@ -50,6 +50,9 @@
                             <strong>
                                 <a href="{{ path('organization_package_details', {organization: organization.alias, package: package.id}) }}">
                                     {{ package.name }}
+                                    {% if package.isArchived %}
+                                        <span class="badge badge-warning ml-1">Archived</span>
+                                    {% endif %}
                                 </a>
                             </strong><br />
                             <small class="font-italic" style="font-size: 0.7em"><a href="{{ package.url }}" target="_blank" rel="nofollow noopener noreferrer">
