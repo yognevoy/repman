@@ -20,6 +20,7 @@ final class PackageDetails
     private ?string $readme;
     private ?string $replacementPackage;
     private bool $enableSecurityScan;
+    private bool $archived = false;
 
     public function __construct(
         string $id,
@@ -34,7 +35,8 @@ final class PackageDetails
         int $keepLastReleases = 0,
         ?string $readme = null,
         ?string $replacementPackage = null,
-        bool $enableSecurityScan = true
+        bool $enableSecurityScan = true,
+        bool $archived = false
     ) {
         $this->id = $id;
         $this->organizationId = $organizationId;
@@ -49,6 +51,7 @@ final class PackageDetails
         $this->readme = $readme;
         $this->replacementPackage = $replacementPackage;
         $this->enableSecurityScan = $enableSecurityScan;
+        $this->archived = $archived;
     }
 
     public function id(): string
@@ -119,5 +122,10 @@ final class PackageDetails
     public function isEnabledSecurityScan(): bool
     {
         return $this->enableSecurityScan;
+    }
+
+    public function isArchived(): bool
+    {
+        return $this->archived;
     }
 }

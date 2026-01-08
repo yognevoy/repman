@@ -9,17 +9,25 @@ use Symfony\Component\HttpFoundation\Request;
 class Filter extends \Buddy\Repman\Query\Filter
 {
     private ?string $searchTerm;
+    private ?bool $archived;
 
-    public function __construct(int $offset = 0, int $limit = 20, ?string $sort = null, ?string $searchTerm = null)
+    public function __construct(int $offset = 0, int $limit = 20, ?string $sort = null, ?string $searchTerm = null, ?bool $archived = null)
     {
         parent::__construct($offset, $limit, $sort);
 
         $this->searchTerm = $searchTerm;
+        $this->archived = $archived;
     }
 
     public function getSearchTerm(): ?string
     {
         return $this->searchTerm;
+    }
+
+    public function setSearchTerm(?string $searchTerm): self
+    {
+        $this->searchTerm = $searchTerm;
+        return $this;
     }
 
     public function hasSearchTerm(): bool
@@ -31,6 +39,22 @@ class Filter extends \Buddy\Repman\Query\Filter
     {
         // @todo Allow more search types?
         return $this->searchTerm !== null && str_starts_with($this->searchTerm, 'depends:');
+    }
+
+    public function isArchived(): ?bool
+    {
+        return $this->archived;
+    }
+
+    public function setArchived(?bool $archived): self
+    {
+        $this->archived = $archived;
+        return $this;
+    }
+
+    public function hasArchived(): bool
+    {
+        return $this->archived !== null;
     }
 
     public function getLinkSearch(): ?string
@@ -60,6 +84,7 @@ class Filter extends \Buddy\Repman\Query\Filter
             (int) $request->get('limit', 20),
             $request->get('sort', $defaultSortColumn),
             $request->get('search', null),
+            $request->get('archived', null),
         );
     }
 }

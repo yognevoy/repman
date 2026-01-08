@@ -99,6 +99,11 @@ class Package
     private ?string $readme = null;
 
     /**
+     * @ORM\Column(type="boolean", options={"default":"false"})
+     */
+    private bool $archived = false;
+
+    /**
      * @ORM\Column(type="json", nullable=true)
      *
      * @var mixed[]
@@ -412,5 +417,20 @@ class Package
     public function setEnabledSecurityScan(bool $enableSecurityScan): void
     {
         $this->enableSecurityScan = $enableSecurityScan;
+    }
+
+    public function isArchived(): bool
+    {
+        return $this->archived;
+    }
+
+    public function archive(): void
+    {
+        $this->archived = true;
+    }
+
+    public function unarchive(): void
+    {
+        $this->archived = false;
     }
 }

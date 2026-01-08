@@ -22,6 +22,7 @@ final class Package
     private ?string $webhookCreatedError;
     private int $keepLastReleases;
     private bool $enableSecurityScan;
+    private bool $archived = false;
 
     public function __construct(
         string $id,
@@ -38,7 +39,8 @@ final class Package
         ?string $webhookCreatedError = null,
         ?ScanResult $scanResult = null,
         int $keepLastReleases = 0,
-        bool $enableSecurityScan = true
+        bool $enableSecurityScan = true,
+        bool $archived = false
     ) {
         $this->id = $id;
         $this->organizationId = $organizationId;
@@ -55,6 +57,7 @@ final class Package
         $this->scanResult = $scanResult ?? null;
         $this->keepLastReleases = $keepLastReleases;
         $this->enableSecurityScan = $enableSecurityScan;
+        $this->archived = $archived;
     }
 
     public function id(): string
@@ -135,5 +138,10 @@ final class Package
     public function isEnabledSecurityScan(): bool
     {
         return $this->enableSecurityScan;
+    }
+
+    public function isArchived(): bool
+    {
+        return $this->archived;
     }
 }

@@ -46,6 +46,9 @@ final class DbalPackageQuery implements PackageQuery
         } elseif ($filter->hasSearchTerm()) {
             $filterSQL = ' AND (p.name ILIKE :term OR p.description ILIKE :term)';
             $params['term'] = '%'.$filter->getSearchTerm().'%';
+        } elseif ($filter->hasArchived()) {
+            $filterSQL = ' AND archived = :archived';
+            $params['archived'] = $filter->isArchived();
         }
 
         $sortSQL = 'name ASC';
@@ -82,9 +85,10 @@ final class DbalPackageQuery implements PackageQuery
                 p.last_scan_status,
                 p.last_scan_result,
                 p.keep_last_releases,
-                p.enable_security_scan
+                p.enable_security_scan,
+                p.archived
             FROM organization_package p '.$joinSQL
-            .'WHERE p.organization_id = :organization_id
+                .'WHERE p.organization_id = :organization_id
             '.$filterSQL.'
             GROUP BY p.id
             ORDER BY '.$sortSQL.'
@@ -97,17 +101,26 @@ final class DbalPackageQuery implements PackageQuery
     /**
      * @return PackageName[]
      */
-    public function getAllNames(string $organizationId): array
+    public function getAllNames(string $organizationId, Filter $filter = null): array
     {
+        $filterSQL = '';
+        $params = [
+            'organization_id' => $organizationId,
+        ];
+
+        if ($filter->hasArchived()) {
+            $filterSQL = ' AND archived = :archived';
+            $params['archived'] = $filter->isArchived();
+        }
+
         return array_map(function (array $data): PackageName {
             return new PackageName($data['id'], $data['name']);
-            }, $this->connection->fetchAllAssociative(
-                'SELECT id, name
+        }, $this->connection->fetchAllAssociative(
+            'SELECT id, name
             FROM "organization_package"
-            WHERE organization_id = :organization_id AND name IS NOT NULL',
-                [
-                'organization_id' => $organizationId,
-        ]));
+            WHERE organization_id = :organization_id AND name IS NOT NULL'.$filterSQL,
+            $params
+        ));
     }
 
     public function count(string $organizationId, Filter $filter): int
@@ -158,7 +171,8 @@ final class DbalPackageQuery implements PackageQuery
                 last_scan_status,
                 last_scan_result,
                 keep_last_releases,
-                enable_security_scan
+                enable_security_scan,
+                archived
             FROM "organization_package"
             WHERE id = :id', [
             'id' => $id,
@@ -194,7 +208,8 @@ final class DbalPackageQuery implements PackageQuery
                 keep_last_releases,
                 readme,
                 replacement_package,
-                enable_security_scan
+                enable_security_scan,
+                archived
             FROM "organization_package"
             WHERE id = :id', [
             'id' => $id,
@@ -273,8 +288,8 @@ final class DbalPackageQuery implements PackageQuery
                 $data['size'],
                 new \DateTimeImmutable($data['date'])
             );
-            }, $this->connection->fetchAllAssociative(
-                'SELECT
+        }, $this->connection->fetchAllAssociative(
+            'SELECT
                 id,
                 version,
                 reference,
@@ -284,9 +299,9 @@ final class DbalPackageQuery implements PackageQuery
             WHERE package_id = :package_id
             ORDER BY date DESC
             LIMIT :limit OFFSET :offset', [
-                'package_id' => $packageId,
-                'limit' => $filter->getLimit(),
-                'offset' => $filter->getOffset(),
+            'package_id' => $packageId,
+            'limit' => $filter->getLimit(),
+            'offset' => $filter->getOffset(),
         ]));
     }
 
@@ -345,8 +360,8 @@ final class DbalPackageQuery implements PackageQuery
                 $data['version'],
                 $data['content'],
             );
-            }, $this->connection->fetchAllAssociative(
-                'SELECT
+        }, $this->connection->fetchAllAssociative(
+            'SELECT
                 date,
                 status,
                 version,
@@ -355,10 +370,10 @@ final class DbalPackageQuery implements PackageQuery
             WHERE package_id = :package_id
             ORDER BY date DESC
             LIMIT :limit OFFSET :offset', [
-                    'package_id' => $packageId,
-                    'limit' => $filter->getLimit(),
-                    'offset' => $filter->getOffset(),
-                ]));
+            'package_id' => $packageId,
+            'limit' => $filter->getLimit(),
+            'offset' => $filter->getOffset(),
+        ]));
     }
 
     public function getScanResultsCount(string $packageId): int
@@ -381,18 +396,18 @@ final class DbalPackageQuery implements PackageQuery
     {
         return array_map(function (array $data): PackageName {
             return new PackageName($data['id'], $data['name'], $data['alias']);
-            }, $this->connection->fetchAllAssociative(
-                'SELECT p.id, p.name, o.alias
+        }, $this->connection->fetchAllAssociative(
+            'SELECT p.id, p.name, o.alias
             FROM organization_package p
             JOIN organization o ON o.id = p.organization_id
             WHERE p.name IS NOT NULL AND p.last_sync_error IS NULL
             GROUP BY p.id, o.alias
             ORDER BY p.last_sync_at ASC
             LIMIT :limit OFFSET :offset', [
-                    'limit' => $limit,
-                    'offset' => $offset,
-                ]
-            ));
+                'limit' => $limit,
+                'offset' => $offset,
+            ]
+        ));
     }
 
     public function getAllSynchronizedCount(): int
@@ -431,7 +446,8 @@ final class DbalPackageQuery implements PackageQuery
             $data['webhook_created_error'],
             $scanResult,
             $data['keep_last_releases'] ?? 0,
-            $data['enable_security_scan'] ?? true
+            $data['enable_security_scan'] ?? true,
+            $data['archived'] ?? false
         );
     }
 
@@ -461,7 +477,8 @@ final class DbalPackageQuery implements PackageQuery
             $data['keep_last_releases'] ?? 0,
             $data['readme'] ?? null,
             $data['replacement_package'] ?? null,
-            $data['enable_security_scan'] ?? true
+            $data['enable_security_scan'] ?? true,
+            $data['archived'] ?? false
         );
     }
 
@@ -477,18 +494,41 @@ final class DbalPackageQuery implements PackageQuery
                 0,
                 new \DateTimeImmutable()
             );
-            }, $this->connection->fetchAllAssociative(
-                'SELECT
+        }, $this->connection->fetchAllAssociative(
+            'SELECT
                 id,
                 version,
                 reference
             FROM organization_package_version
             WHERE stability != :stability
             AND package_id = :package_id',
-                [
-                    'package_id' => $packageId,
-                    'stability' => VersionEntity::STABILITY_STABLE,
-                ]
-            ));
+            [
+                'package_id' => $packageId,
+                'stability' => VersionEntity::STABILITY_STABLE,
+            ]
+        ));
+    }
+
+    /**
+     * @param string $organizationId
+     * @param string $name
+     * @return bool
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function isActiveByName(string $organizationId, string $name): bool
+    {
+        $result = $this->connection->fetchOne(
+            'SELECT COUNT(*)
+            FROM organization_package
+            WHERE organization_id = :organization_id
+            AND name = :package_name
+            AND archived = false',
+            [
+                'organization_id' => $organizationId,
+                'package_name' => $name,
+            ]
+        );
+
+        return (int) $result > 0;
     }
 }

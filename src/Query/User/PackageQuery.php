@@ -28,7 +28,7 @@ interface PackageQuery
     /**
      * @return PackageName[]
      */
-    public function getAllNames(string $organizationId): array;
+    public function getAllNames(string $organizationId, PackageFilter $filter = null): array;
 
     /**
      * @return Option<Package>
@@ -84,4 +84,11 @@ interface PackageQuery
      * @return Version[]
      */
     public function findNonStableVersions(string $packageId): array;
+
+    /**
+     * @param string $organizationId
+     * @param string $name
+     * @return bool
+     */
+    public function isActiveByName(string $organizationId, string $name): bool;
 }
