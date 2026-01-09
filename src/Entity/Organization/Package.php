@@ -104,6 +104,21 @@ class Package
     private bool $archived = false;
 
     /**
+     * @ORM\Column(type="boolean", options={"default":"false"})
+     */
+    private bool $locked = false;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private ?string $lockedVersion = null;
+
+    /**
+     * @ORM\Column(type="datetime_immutable", nullable=true)
+     */
+    private ?\DateTimeImmutable $lockedUntil = null;
+
+    /**
      * @ORM\Column(type="json", nullable=true)
      *
      * @var mixed[]
@@ -392,11 +407,24 @@ class Package
         return $this->keepLastReleases;
     }
 
-    public function update(string $url, int $keepLastReleases, bool $enableSecurityScan): void
+    public function update(
+        string $url,
+        int $keepLastReleases,
+        bool $enableSecurityScan,
+        bool $locked = false,
+        ?string $lockedVersion = null,
+        ?\DateTimeImmutable $lockedUntil = null
+    ): void
     {
         $this->keepLastReleases = $keepLastReleases;
         $this->repositoryUrl = $url;
         $this->enableSecurityScan = $enableSecurityScan;
+
+        if ($locked) {
+            $this->lock($lockedVersion, $lockedUntil);
+        } else {
+            $this->unlock();
+        }
     }
 
     public function getReplacementPackage(): ?string
@@ -432,5 +460,34 @@ class Package
     public function unarchive(): void
     {
         $this->archived = false;
+    }
+
+    public function lock(?string $lockedVersion, ?\DateTimeImmutable $lockedUntil): void
+    {
+        $this->locked = true;
+        $this->lockedVersion = $lockedVersion;
+        $this->lockedUntil = $lockedUntil;
+    }
+
+    public function unlock(): void
+    {
+        $this->locked = false;
+        $this->lockedVersion = null;
+        $this->lockedUntil = null;
+    }
+
+    public function isLocked(): bool
+    {
+        return $this->locked;
+    }
+
+    public function lockedVersion(): ?string
+    {
+        return $this->lockedVersion;
+    }
+
+    public function lockedUntil(): ?\DateTimeImmutable
+    {
+        return $this->lockedUntil;
     }
 }

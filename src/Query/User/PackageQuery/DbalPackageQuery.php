@@ -86,7 +86,10 @@ final class DbalPackageQuery implements PackageQuery
                 p.last_scan_result,
                 p.keep_last_releases,
                 p.enable_security_scan,
-                p.archived
+                p.archived,
+                p.locked,
+                p.locked_version,
+                p.locked_until
             FROM organization_package p '.$joinSQL
                 .'WHERE p.organization_id = :organization_id
             '.$filterSQL.'
@@ -172,11 +175,55 @@ final class DbalPackageQuery implements PackageQuery
                 last_scan_result,
                 keep_last_releases,
                 enable_security_scan,
-                archived
+                archived,
+                locked,
+                locked_version,
+                locked_until
             FROM "organization_package"
             WHERE id = :id', [
             'id' => $id,
         ]);
+        if ($data === false) {
+            return Option::none();
+        }
+
+        return Option::some($this->hydratePackage($data));
+    }
+
+    /**
+     * @return Option<Package>
+     */
+    public function getByName(string $organizationId, string $name): Option
+    {
+        $data = $this->connection->fetchAssociative(
+            'SELECT
+                id,
+                organization_id,
+                type,
+                repository_url,
+                name,
+                latest_released_version,
+                latest_release_date,
+                description,
+                last_sync_at,
+                last_sync_error,
+                webhook_created_at,
+                webhook_created_error,
+                last_scan_date,
+                last_scan_status,
+                last_scan_result,
+                keep_last_releases,
+                enable_security_scan,
+                archived,
+                locked_version,
+                locked_until,
+                locked
+            FROM "organization_package"
+            WHERE organization_id = :organization_id AND name = :name', [
+            'organization_id' => $organizationId,
+            'name' => $name,
+        ]);
+
         if ($data === false) {
             return Option::none();
         }
@@ -209,7 +256,10 @@ final class DbalPackageQuery implements PackageQuery
                 readme,
                 replacement_package,
                 enable_security_scan,
-                archived
+                archived,
+                locked,
+                locked_version,
+                locked_until
             FROM "organization_package"
             WHERE id = :id', [
             'id' => $id,
@@ -447,7 +497,10 @@ final class DbalPackageQuery implements PackageQuery
             $scanResult,
             $data['keep_last_releases'] ?? 0,
             $data['enable_security_scan'] ?? true,
-            $data['archived'] ?? false
+            $data['archived'] ?? false,
+            $data['locked'] ?? false,
+            $data['locked_version'],
+            $data['locked_until'] !== null ? new \DateTimeImmutable($data['locked_until']) : null
         );
     }
 
@@ -478,7 +531,10 @@ final class DbalPackageQuery implements PackageQuery
             $data['readme'] ?? null,
             $data['replacement_package'] ?? null,
             $data['enable_security_scan'] ?? true,
-            $data['archived'] ?? false
+            $data['archived'] ?? false,
+            $data['locked'] ?? false,
+            $data['locked_version'],
+            $data['locked_until'] !== null ? new \DateTimeImmutable($data['locked_until']) : null
         );
     }
 
@@ -509,12 +565,6 @@ final class DbalPackageQuery implements PackageQuery
         ));
     }
 
-    /**
-     * @param string $organizationId
-     * @param string $name
-     * @return bool
-     * @throws \Doctrine\DBAL\Exception
-     */
     public function isActiveByName(string $organizationId, string $name): bool
     {
         $result = $this->connection->fetchOne(

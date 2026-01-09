@@ -36,6 +36,11 @@ interface PackageQuery
     public function getById(string $id): Option;
 
     /**
+     * @return Option<Package>
+     */
+    public function getByName(string $organizationId, string $name): Option;
+
+    /**
      * @return Option<PackageDetails>
      */
     public function getDetailsById(string $id): Option;
@@ -85,10 +90,5 @@ interface PackageQuery
      */
     public function findNonStableVersions(string $packageId): array;
 
-    /**
-     * @param string $organizationId
-     * @param string $name
-     * @return bool
-     */
     public function isActiveByName(string $organizationId, string $name): bool;
 }

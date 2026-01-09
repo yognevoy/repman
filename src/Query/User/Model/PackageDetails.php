@@ -21,6 +21,9 @@ final class PackageDetails
     private ?string $replacementPackage;
     private bool $enableSecurityScan;
     private bool $archived = false;
+    private bool $locked;
+    private ?string $lockedVersion;
+    private ?\DateTimeImmutable $lockedUntil;
 
     public function __construct(
         string $id,
@@ -36,7 +39,10 @@ final class PackageDetails
         ?string $readme = null,
         ?string $replacementPackage = null,
         bool $enableSecurityScan = true,
-        bool $archived = false
+        bool $archived = false,
+        bool $locked = false,
+        ?string $lockedVersion = null,
+        ?\DateTimeImmutable $lockedUntil = null
     ) {
         $this->id = $id;
         $this->organizationId = $organizationId;
@@ -52,6 +58,9 @@ final class PackageDetails
         $this->replacementPackage = $replacementPackage;
         $this->enableSecurityScan = $enableSecurityScan;
         $this->archived = $archived;
+        $this->locked = $locked;
+        $this->lockedVersion = $lockedVersion;
+        $this->lockedUntil = $lockedUntil;
     }
 
     public function id(): string
@@ -127,5 +136,20 @@ final class PackageDetails
     public function isArchived(): bool
     {
         return $this->archived;
+    }
+
+    public function isLocked(): bool
+    {
+        return $this->locked;
+    }
+
+    public function lockedVersion(): ?string
+    {
+        return $this->lockedVersion;
+    }
+
+    public function lockedUntil(): ?\DateTimeImmutable
+    {
+        return $this->lockedUntil;
     }
 }

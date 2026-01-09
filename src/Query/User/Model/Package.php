@@ -23,6 +23,9 @@ final class Package
     private int $keepLastReleases;
     private bool $enableSecurityScan;
     private bool $archived = false;
+    private bool $locked;
+    private ?string $lockedVersion;
+    private ?\DateTimeImmutable $lockedUntil;
 
     public function __construct(
         string $id,
@@ -40,7 +43,10 @@ final class Package
         ?ScanResult $scanResult = null,
         int $keepLastReleases = 0,
         bool $enableSecurityScan = true,
-        bool $archived = false
+        bool $archived = false,
+        bool $locked = false,
+        ?string $lockedVersion = null,
+        ?\DateTimeImmutable $lockedUntil = null
     ) {
         $this->id = $id;
         $this->organizationId = $organizationId;
@@ -58,6 +64,9 @@ final class Package
         $this->keepLastReleases = $keepLastReleases;
         $this->enableSecurityScan = $enableSecurityScan;
         $this->archived = $archived;
+        $this->locked = $locked;
+        $this->lockedVersion = $lockedVersion;
+        $this->lockedUntil = $lockedUntil;
     }
 
     public function id(): string
@@ -143,5 +152,20 @@ final class Package
     public function isArchived(): bool
     {
         return $this->archived;
+    }
+
+    public function isLocked(): bool
+    {
+        return $this->locked;
+    }
+
+    public function lockedVersion(): ?string
+    {
+        return $this->lockedVersion;
+    }
+
+    public function lockedUntil(): ?\DateTimeImmutable
+    {
+        return $this->lockedUntil;
     }
 }
