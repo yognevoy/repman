@@ -14,9 +14,43 @@
 {% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-6 col-lg-4">
-        {{ form(form) }}
+    <div class="row">
+        <div class="col-md-6 col-lg-4">
+            {{ form_start(form) }}
+            {{ form_widget(form) }}
+            {{ form_end(form) }}
+        </div>
     </div>
-</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const lockField = document.querySelector('select[name="locked"]');
+            const versionGroup = document.querySelector('#lockedVersion').closest('.form-group');
+            const untilGroup = document.querySelector('#lockedUntil').closest('.form-group');
+
+            function toggleLockFields() {
+                if (lockField.value === '1') {
+                    versionGroup.style.display = 'block';
+                    untilGroup.style.display = 'block';
+                } else {
+                    versionGroup.style.display = 'none';
+                    untilGroup.style.display = 'none';
+                }
+            }
+
+            toggleLockFields();
+            lockField.addEventListener('change', toggleLockFields);
+
+            if (window.Litepicker) {
+                new Litepicker({
+                    element: document.getElementById('lockedUntil'),
+                    format: 'DD.MM.YYYY',
+                    buttonText: {
+                        previousMonth: `{% include "svg/chevron-left.svg" %}`,
+                        nextMonth: `{% include "svg/chevron-right.svg" %}`,
+                    },
+                });
+            }
+        });
+    </script>
 {% endblock %}
