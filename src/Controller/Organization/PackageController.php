@@ -169,6 +169,9 @@ final class PackageController extends AbstractController
             'url' => $package->url(),
             'keepLastReleases' => $package->keepLastReleases(),
             'enableSecurityScan' => $package->isEnabledSecurityScan(),
+            'locked' => $package->isLocked(),
+            'lockedVersion' => $package->lockedVersion(),
+            'lockedUntil' => $package->lockedUntil() ? $package->lockedUntil()->format('d.m.Y') : null,
         ]);
 
         $form->handleRequest($request);
@@ -179,7 +182,10 @@ final class PackageController extends AbstractController
                 $package->id(),
                 $data['url'],
                 $data['keepLastReleases'],
-                $data['enableSecurityScan']
+                $data['enableSecurityScan'],
+                $data['locked'] ?? false,
+                $data['lockedVersion'] ?? null,
+                !empty($data['lockedUntil']) ? new \DateTimeImmutable($data['lockedUntil']) : null
             ));
 
             $this->messageBus->dispatch(new SynchronizePackage($package->id()));
