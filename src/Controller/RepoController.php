@@ -9,6 +9,7 @@ use Buddy\Repman\Query\User\Model\Organization;
 use Buddy\Repman\Query\User\Model\PackageName;
 use Buddy\Repman\Query\User\PackageQuery;
 use Buddy\Repman\Query\User\PackageQuery\Filter;
+use Buddy\Repman\Service\Organization\PackageLockFilter;
 use Buddy\Repman\Service\Organization\PackageManager;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,15 +27,18 @@ final class RepoController extends AbstractController
 {
     private PackageQuery $packageQuery;
     private PackageManager $packageManager;
+    private PackageLockFilter $packageLockFilter;
     private MessageBusInterface $messageBus;
 
     public function __construct(
         PackageQuery $packageQuery,
         PackageManager $packageManager,
+        PackageLockFilter $packageLockFilter,
         MessageBusInterface $messageBus
     ) {
         $this->packageQuery = $packageQuery;
         $this->packageManager = $packageManager;
+        $this->packageLockFilter = $packageLockFilter;
         $this->messageBus = $messageBus;
     }
 
@@ -51,6 +55,10 @@ final class RepoController extends AbstractController
         [$lastModified, $packages] = $this->packageManager->findProviders(
             $organization->alias(),
             $packageNames
+        );
+        $packages = $this->packageLockFilter->filter(
+            $packages,
+            $organization->id()
         );
 
         $response = (new JsonResponse([
@@ -94,6 +102,11 @@ final class RepoController extends AbstractController
         // Check if the requested package is not archived
         if (!$this->packageQuery->isActiveByName($organization->id(), $package)) {
             throw new NotFoundHttpException('This distribution file can not be found or downloaded from origin url.');
+        }
+
+        // Check if the requested version is allowed based on lock parameters
+        if (!$this->packageLockFilter->isVersionAllowed($organization->id(), $package, $version)) {
+            throw new NotFoundHttpException("This version is locked.");
         }
 
         $filename = $this->packageManager
@@ -194,6 +207,11 @@ final class RepoController extends AbstractController
         if ($providerData === []) {
             throw new NotFoundHttpException();
         }
+
+        $providerData = $this->packageLockFilter->filter(
+            $providerData,
+            $organization->id()
+        );
 
         $response = (new JsonResponse(['packages' => $providerData]))
             ->setLastModified($lastModified)
