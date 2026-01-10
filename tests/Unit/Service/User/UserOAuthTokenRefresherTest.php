@@ -23,13 +23,13 @@ class UserOAuthTokenRefresherTest extends TestCase
         $oauth->method('getClient')->willReturn($client);
 
         $provider->method('getAccessToken')->willReturnOnConsecutiveCalls(
-            new LeagueAccessToken(['access_token' => 'new-token']),
-            new LeagueAccessToken(['access_token' => 'new-token', 'expires_in' => 3600])
+            new LeagueAccessToken(['access_token' => 'new-token', 'refresh_token' => 'refresh-token']),
+            new LeagueAccessToken(['access_token' => 'new-token', 'refresh_token' => 'refresh-token', 'expires_in' => 3600])
         );
 
         $refresher = new UserOAuthTokenRefresher($oauth);
 
-        self::assertEquals(new AccessToken('new-token'), $refresher->refresh('github', 'refresh-token'));
+        self::assertEquals(new AccessToken('new-token', 'refresh-token'), $refresher->refresh('github', 'refresh-token'));
         self::assertEquals(new AccessToken('new-token', 'refresh-token', (new \DateTimeImmutable())->setTimestamp(time() + 3600)), $refresher->refresh('github', 'refresh-token'));
     }
 }
