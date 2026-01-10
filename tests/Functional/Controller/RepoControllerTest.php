@@ -11,16 +11,25 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class RepoControllerTest extends FunctionalTestCase
 {
+    private string $domain;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $domain = $this->container()->getParameter('domain');
+        $this->domain = $domain;
+    }
+
     public function testAuthRequired(): void
     {
-        $this->client->request('GET', '/', [], [], ['HTTP_HOST' => 'buddy.repo.repman.wip']);
+        $this->client->request('GET', '/', [], [], ['HTTP_HOST' => "buddy.repo.$this->domain"]);
 
         self::assertEquals(Response::HTTP_FORBIDDEN, $this->client->getResponse()->getStatusCode());
     }
 
     public function testAuthRequiredForOrganizationRepo(): void
     {
-        $this->client->request('GET', '/packages.json', [], [], ['HTTP_HOST' => 'buddy.repo.repman.wip']);
+        $this->client->request('GET', '/packages.json', [], [], ['HTTP_HOST' => "buddy.repo.$this->domain"]);
 
         self::assertEquals(Response::HTTP_FORBIDDEN, $this->client->getResponse()->getStatusCode());
     }
@@ -28,7 +37,7 @@ final class RepoControllerTest extends FunctionalTestCase
     public function testPackagesActionWithInvalidToken(): void
     {
         $this->client->request('GET', '/packages.json', [], [], [
-            'HTTP_HOST' => 'buddy.repo.repman.wip',
+            'HTTP_HOST' => "buddy.repo.$this->domain",
             'PHP_AUTH_USER' => 'token',
             'PHP_AUTH_PW' => 'secret-org-token',
         ]);
@@ -52,7 +61,7 @@ final class RepoControllerTest extends FunctionalTestCase
         );
 
         $this->client->request('GET', '/packages.json', [], [], [
-            'HTTP_HOST' => 'evil.repo.repman.wip',
+            'HTTP_HOST' => "evil.repo.$this->domain",
             'PHP_AUTH_USER' => 'token',
             'PHP_AUTH_PW' => 'secret-org-token',
         ]);
@@ -75,7 +84,7 @@ final class RepoControllerTest extends FunctionalTestCase
         self::assertStringContainsString('never', $this->lastResponseBody());
 
         $this->client->request('GET', '/packages.json', [], [], [
-            'HTTP_HOST' => 'buddy.repo.repman.wip',
+            'HTTP_HOST' => "buddy.repo.$this->domain",
             'PHP_AUTH_USER' => 'token',
             'PHP_AUTH_PW' => 'secret-org-token',
         ]);
@@ -99,11 +108,11 @@ final class RepoControllerTest extends FunctionalTestCase
                 "buddy-works/repman"
             ],
             "metadata-url": "/p2/%package%.json",
-            "notify-batch": "http://buddy.repo.repman.wip/downloads",
+            "notify-batch": "http://buddy.repo.' . $this->domain . '/downloads",
             "search": "https://packagist.org/search.json?q=%query%&type=%type%",
             "mirrors": [
                 {
-                    "dist-url": "http://buddy.repo.repman.wip/dists/%package%/%version%/%reference%.%type%",
+                    "dist-url": "http://buddy.repo.' . $this->domain . '/dists/%package%/%version%/%reference%.%type%",
                     "preferred": true
                 }
             ]
@@ -125,7 +134,7 @@ final class RepoControllerTest extends FunctionalTestCase
 
         $this->contentFromStream(function (): void {
             $this->client->request('GET', '/dists/buddy-works/repman/1.2.3.0/ac7dcaf888af2324cd14200769362129c8dd8550.zip', [], [], [
-                'HTTP_HOST' => 'buddy.repo.repman.wip',
+                'HTTP_HOST' => "buddy.repo.$this->domain",
                 'PHP_AUTH_USER' => 'token',
                 'PHP_AUTH_PW' => 'secret-org-token',
             ]);
@@ -137,7 +146,7 @@ final class RepoControllerTest extends FunctionalTestCase
 
         $this->contentFromStream(function (): void {
             $this->client->request('GET', '/dists/vendor/package/9.9.9.9/ac7dcaf888af2324cd14200769362129c8dd8550.zip', [], [], [
-                'HTTP_HOST' => 'buddy.repo.repman.wip',
+                'HTTP_HOST' => "buddy.repo.$this->domain",
                 'PHP_AUTH_USER' => 'token',
                 'PHP_AUTH_PW' => 'secret-org-token',
             ]);
@@ -152,7 +161,7 @@ final class RepoControllerTest extends FunctionalTestCase
         $this->fixtures->syncPackageWithData('c75b535f-5817-41a2-9424-e05476e7958f', 'buddy-works/repman', 'desc', '1.2.0', new \DateTimeImmutable());
 
         $this->client->request('POST', '/downloads', [], [], [
-            'HTTP_HOST' => 'buddy.repo.repman.wip',
+            'HTTP_HOST' => "buddy.repo.$this->domain",
         ], \json_encode(
             [
                 'downloads' => [
@@ -176,7 +185,7 @@ final class RepoControllerTest extends FunctionalTestCase
         self::assertEquals(Response::HTTP_CREATED, $this->client->getResponse()->getStatusCode());
 
         $this->client->request('POST', '/downloads', [], [], [
-            'HTTP_HOST' => 'buddy.repo.repman.wip',
+            'HTTP_HOST' => "buddy.repo.$this->domain",
         ], (string) \json_encode([]));
 
         self::assertEquals(Response::HTTP_BAD_REQUEST, $this->client->getResponse()->getStatusCode());
@@ -187,7 +196,7 @@ final class RepoControllerTest extends FunctionalTestCase
         $organizationId = $this->fixtures->createOrganization('buddy', $this->fixtures->createUser());
         $this->fixtures->enableAnonymousUserAccess($organizationId);
 
-        $this->client->request('GET', '/packages.json', [], [], ['HTTP_HOST' => 'buddy.repo.repman.wip']);
+        $this->client->request('GET', '/packages.json', [], [], ['HTTP_HOST' => "buddy.repo.$this->domain"]);
 
         self::assertTrue($this->client->getResponse()->isOk());
     }
@@ -198,7 +207,7 @@ final class RepoControllerTest extends FunctionalTestCase
         $this->fixtures->createToken($this->fixtures->createOrganization('buddy', $adminId), 'secret-org-token');
 
         $this->client->request('GET', '/p2/buddy-works/repman.json', [], [], [
-            'HTTP_HOST' => 'buddy.repo.repman.wip',
+            'HTTP_HOST' => "buddy.repo.$this->domain",
             'PHP_AUTH_USER' => 'token',
             'PHP_AUTH_PW' => 'secret-org-token',
         ]);
@@ -233,7 +242,7 @@ final class RepoControllerTest extends FunctionalTestCase
             ->setTimestamp((int) \filemtime(__DIR__.'/../../Resources/p2/buddy-works/repman.json'));
 
         $this->client->request('GET', '/p2/buddy-works/repman.json', [], [], [
-            'HTTP_HOST' => 'buddy.repo.repman.wip',
+            'HTTP_HOST' => "buddy.repo.$this->domain",
             'PHP_AUTH_USER' => 'token',
             'PHP_AUTH_PW' => 'secret-org-token',
             'HTTP_IF_MODIFIED_SINCE' => $fileModifiedTime->format('D, d M Y H:i:s \G\M\T'),
@@ -249,7 +258,7 @@ final class RepoControllerTest extends FunctionalTestCase
         $this->fixtures->createToken($this->fixtures->createOrganization('buddy', $adminId), 'secret-org-token');
 
         $this->client->request('GET', '/p2/buddy-works/fake.json', [], [], [
-            'HTTP_HOST' => 'buddy.repo.repman.wip',
+            'HTTP_HOST' => "buddy.repo.$this->domain",
             'PHP_AUTH_USER' => 'token',
             'PHP_AUTH_PW' => 'secret-org-token',
         ]);
@@ -263,7 +272,7 @@ final class RepoControllerTest extends FunctionalTestCase
         $this->fixtures->createToken($this->fixtures->createOrganization('buddy', $adminId), 'secret-org-token');
 
         $this->client->request('GET', '/p2/buddy-works/repman~dev.json', [], [], [
-            'HTTP_HOST' => 'buddy.repo.repman.wip',
+            'HTTP_HOST' => "buddy.repo.$this->domain",
             'PHP_AUTH_USER' => 'token',
             'PHP_AUTH_PW' => 'secret-org-token',
         ]);
