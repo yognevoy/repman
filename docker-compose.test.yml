@@ -1,0 +1,20 @@
+version: '3.4'
+
+services:
+  database:
+    environment:
+      POSTGRES_DB: test
+    volumes:
+      - postgres-test-data:/var/lib/postgresql/data
+
+  app:
+    env_file: .env.docker.test
+
+  consumer:
+    env_file: .env.docker.test
+
+  cron:
+    env_file: .env.docker.test
+
+volumes:
+  postgres-test-data:
