@@ -154,4 +154,36 @@ final class PackageTest extends TestCase
         $this->package->unarchive();
         self::assertFalse($this->package->isArchived());
     }
+
+    public function testPackageIsNotLockedByDefault(): void
+    {
+        self::assertFalse($this->package->isLocked());
+        self::assertNull($this->package->lockedVersion());
+        self::assertNull($this->package->lockedUntil());
+    }
+
+    public function testPackageCanBeLocked(): void
+    {
+        $lockedVersion = '1.2.3';
+        $lockedUntil = new \DateTimeImmutable();
+
+        $this->package->lock($lockedVersion, $lockedUntil);
+
+        self::assertTrue($this->package->isLocked());
+        self::assertSame($lockedVersion, $this->package->lockedVersion());
+        self::assertSame($lockedUntil, $this->package->lockedUntil());
+    }
+
+    public function testPackageCanBeUnlocked(): void
+    {
+        $lockedVersion = '1.2.3';
+        $lockedUntil = new \DateTimeImmutable();
+        $this->package->lock($lockedVersion, $lockedUntil);
+
+        $this->package->unlock();
+
+        self::assertFalse($this->package->isLocked());
+        self::assertNull($this->package->lockedVersion());
+        self::assertNull($this->package->lockedUntil());
+    }
 }
