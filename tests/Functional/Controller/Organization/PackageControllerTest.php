@@ -261,4 +261,40 @@ final class PackageControllerTest extends FunctionalTestCase
 
         self::assertTrue($this->client->getResponse()->isOk());
     }
+
+    public function testArchivePackage(): void
+    {
+        $buddyId = $this->fixtures->createOrganization('buddy', $this->userId);
+        $packageId = $this->fixtures->addPackage($buddyId, 'https://buddy.com');
+
+        $this->client->request('POST', $this->urlTo('organization_package_archive', [
+            'organization' => 'buddy',
+            'package' => $packageId,
+        ]));
+
+        self::assertTrue($this->client->getResponse()->isRedirect(
+            $this->urlTo('organization_packages', ['organization' => 'buddy'])
+        ));
+
+        $this->client->followRedirect();
+        self::assertStringContainsString('Package has been successfully archived', $this->lastResponseBody());
+    }
+
+    public function testUnarchivePackage(): void
+    {
+        $buddyId = $this->fixtures->createOrganization('buddy', $this->userId);
+        $packageId = $this->fixtures->addPackage($buddyId, 'https://buddy.com');
+
+        $this->client->request('POST', $this->urlTo('organization_package_unarchive', [
+            'organization' => 'buddy',
+            'package' => $packageId,
+        ]));
+
+        self::assertTrue($this->client->getResponse()->isRedirect(
+            $this->urlTo('organization_packages', ['organization' => 'buddy'])
+        ));
+
+        $this->client->followRedirect();
+        self::assertStringContainsString('Package has been successfully unarchived', $this->lastResponseBody());
+    }
 }

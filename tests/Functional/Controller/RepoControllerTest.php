@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Buddy\Repman\Tests\Functional\Controller;
 
+use Buddy\Repman\Entity\Organization\Package;
 use Buddy\Repman\Tests\Functional\FunctionalTestCase;
 use Ramsey\Uuid\Uuid;
 use Symfony\Component\HttpFoundation\Response;
@@ -296,5 +297,41 @@ final class RepoControllerTest extends FunctionalTestCase
             }
         }
         ', $this->client->getResponse()->getContent());
+    }
+
+    public function testProviderV2Returns404ForArchivedPackage(): void
+    {
+        $adminId = $this->createAndLoginAdmin('test@buddy.works', 'secret');
+        $organizationId = $this->fixtures->createOrganization('buddy', $adminId);
+        $this->fixtures->createToken($organizationId, 'secret-org-token');
+        $packageId = Uuid::uuid4()->toString();
+        $this->fixtures->createPackage($packageId, 'buddy', $organizationId);
+        $this->fixtures->archivePackage($packageId);
+
+        $this->client->request('GET', '/p2/buddy-works/repman.json', [], [], [
+            'HTTP_HOST' => "buddy.repo.$this->domain",
+            'PHP_AUTH_USER' => 'token',
+            'PHP_AUTH_PW' => 'secret-org-token',
+        ]);
+
+        self::assertTrue($this->client->getResponse()->isNotFound());
+    }
+
+    public function testDistributionReturns404ForArchivedPackage(): void
+    {
+        $adminId = $this->createAndLoginAdmin('test@buddy.works', 'secret');
+        $organizationId = $this->fixtures->createOrganization('buddy', $adminId);
+        $this->fixtures->createToken($organizationId, 'secret-org-token');
+        $packageId = Uuid::uuid4()->toString();
+        $this->fixtures->createPackage($packageId, 'buddy', $organizationId);
+        $this->fixtures->archivePackage($packageId);
+
+        $this->client->request('GET', '/dists/buddy-works/repman/1.0.0/ref.zip', [], [], [
+            'HTTP_HOST' => "buddy.repo.$this->domain",
+            'PHP_AUTH_USER' => 'token',
+            'PHP_AUTH_PW' => 'secret-org-token',
+        ]);
+
+        self::assertTrue($this->client->getResponse()->isNotFound());
     }
 }
