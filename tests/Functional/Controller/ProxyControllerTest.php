@@ -10,15 +10,24 @@ use Symfony\Component\Messenger\Transport\InMemoryTransport;
 
 final class ProxyControllerTest extends FunctionalTestCase
 {
+    private string $domain;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $domain = $this->container()->getParameter('domain');
+        $this->domain = $domain;
+    }
+
     public function testPackagesAction(): void
     {
         $this->client->request('GET', '/packages.json', [], [], [
-            'HTTP_HOST' => 'repo.repman.wip',
+            'HTTP_HOST' => "repo.$this->domain",
         ]);
 
-        self::assertMatchesPattern('
+        $expectedPattern = '
         {
-            "notify-batch": "http://repo.repman.wip/downloads",
+            "notify-batch": "http://repo.'.$this->domain.'/downloads",
             "providers-url": "/p/%package%$%hash%.json",
             "metadata-url": "/p2/%package%.json",
             "search": "https://packagist.org/search.json?q=%query%&type=%type%",
@@ -35,7 +44,9 @@ final class ProxyControllerTest extends FunctionalTestCase
                 }
             }
         }
-        ', $this->client->getResponse()->getContent());
+        ';
+
+        self::assertMatchesPattern($expectedPattern, $this->client->getResponse()->getContent());
     }
 
     public function testPackagesActionMissingProvider(): void
@@ -47,14 +58,14 @@ final class ProxyControllerTest extends FunctionalTestCase
         rename($oldProviderName, $newProviderName);
 
         $this->client->request('GET', '/packages.json', [], [], [
-            'HTTP_HOST' => 'repo.repman.wip',
+            'HTTP_HOST' => "repo.$this->domain",
         ]);
 
         rename($newProviderName, $oldProviderName);
 
-        self::assertMatchesPattern('
+        $expectedPattern = '
         {
-            "notify-batch": "http://repo.repman.wip/downloads",
+            "notify-batch": "http://repo.'.$this->domain.'/downloads",
             "providers-url": "/p/%package%$%hash%.json",
             "metadata-url": "/p2/%package%.json",
             "search": "https://packagist.org/search.json?q=%query%&type=%type%",
@@ -67,13 +78,15 @@ final class ProxyControllerTest extends FunctionalTestCase
             "providers-lazy-url": "/p/%package%",
             "provider-includes": []
         }
-        ', $this->client->getResponse()->getContent());
+        ';
+
+        self::assertMatchesPattern($expectedPattern, $this->client->getResponse()->getContent());
     }
 
     public function testProviderLazyAction(): void
     {
         $response = $this->contentFromStream(fn () => $this->client->request('GET', '/p/buddy-works/repman', [], [], [
-            'HTTP_HOST' => 'repo.repman.wip',
+            'HTTP_HOST' => "repo.$this->domain",
         ]));
 
         self::assertMatchesPattern('
@@ -90,7 +103,7 @@ final class ProxyControllerTest extends FunctionalTestCase
     public function testProviderLazyActionEmptyPackagesWhenNotExist(): void
     {
         $response = $this->contentFromStream(fn () => $this->client->request('GET', '/p/buddy-works/example-app', [], [], [
-            'HTTP_HOST' => 'repo.repman.wip',
+            'HTTP_HOST' => "repo.$this->domain",
         ]));
 
         self::assertMatchesPattern('
@@ -103,7 +116,7 @@ final class ProxyControllerTest extends FunctionalTestCase
     public function testProviderV2Action(): void
     {
         $response = $this->contentFromStream(fn () => $this->client->request('GET', '/p2/buddy-works/repman.json', [], [], [
-            'HTTP_HOST' => 'repo.repman.wip',
+            'HTTP_HOST' => "repo.$this->domain",
         ]));
 
         self::assertMatchesPattern('
@@ -120,7 +133,7 @@ final class ProxyControllerTest extends FunctionalTestCase
     public function testProviderV2ActionWhenPackageNotExist(): void
     {
         $this->client->request('GET', '/p2/buddy-works/example-app.json', [], [], [
-            'HTTP_HOST' => 'repo.repman.wip',
+            'HTTP_HOST' => "repo.$this->domain",
         ]);
         self::assertTrue($this->client->getResponse()->isNotFound());
     }
@@ -128,7 +141,7 @@ final class ProxyControllerTest extends FunctionalTestCase
     public function testProviderAction(): void
     {
         $response = $this->contentFromStream(fn () => $this->client->request('GET', '/p/buddy-works/repman$d5d2c9708c1240da3913ee9fba51759b14b8443826a93b84fa0fa95d70cd3703.json', [], [], [
-            'HTTP_HOST' => 'repo.repman.wip',
+            'HTTP_HOST' => "repo.$this->domain",
         ]));
 
         self::assertMatchesPattern('
@@ -145,7 +158,7 @@ final class ProxyControllerTest extends FunctionalTestCase
     public function testProviderNotFoundWhenNotExist(): void
     {
         $this->contentFromStream(fn () => $this->client->request('GET', '/p/buddy-works/repman$ee203d24e9722116c133153095cd65f7d94d8261bed4bd77da698dda07e8c98d.json', [], [], [
-            'HTTP_HOST' => 'repo.repman.wip',
+            'HTTP_HOST' => "repo.$this->domain",
         ]));
 
         self::assertTrue($this->client->getResponse()->isNotFound());
@@ -154,7 +167,7 @@ final class ProxyControllerTest extends FunctionalTestCase
     public function testProvidersAction(): void
     {
         $response = $this->contentFromStream(fn () => $this->client->request('GET', '/p/provider-latest$bf7274d469c9a2c4b4d0babeeb112b40a3afd19a9887adb342671818360ae326.json', [], [], [
-            'HTTP_HOST' => 'repo.repman.wip',
+            'HTTP_HOST' => "repo.$this->domain",
         ]));
 
         self::assertMatchesPattern('
@@ -172,7 +185,7 @@ final class ProxyControllerTest extends FunctionalTestCase
     public function testProvidersNotFoundWhenNotExist(): void
     {
         $this->contentFromStream(fn () => $this->client->request('GET', 'provider-latest$e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.json', [], [], [
-            'HTTP_HOST' => 'repo.repman.wip',
+            'HTTP_HOST' => "repo.$this->domain",
         ]));
 
         self::assertTrue($this->client->getResponse()->isNotFound());
@@ -181,7 +194,7 @@ final class ProxyControllerTest extends FunctionalTestCase
     public function testDistributionAction(): void
     {
         $file = $this->contentFromStream(fn () => $this->client->request('GET', '/dists/buddy-works/repman/0.1.2.0/f0c896a759d4e2e1eff57978318e841911796305.zip', [], [], [
-            'HTTP_HOST' => 'repo.repman.wip',
+            'HTTP_HOST' => "repo.$this->domain",
         ]));
 
         self::assertTrue($this->client->getResponse()->isOk());
@@ -191,7 +204,7 @@ final class ProxyControllerTest extends FunctionalTestCase
     public function testDistributionNotFoundAction(): void
     {
         $this->client->request('GET', '/dists/buddy-works/repman/2.0.0.0/0f1a178ca9c0271bca6426dde8f5a2241578deae.zip', [], [], [
-            'HTTP_HOST' => 'repo.repman.wip',
+            'HTTP_HOST' => "repo.$this->domain",
         ]);
 
         self::assertTrue($this->client->getResponse()->isNotFound());
@@ -200,7 +213,7 @@ final class ProxyControllerTest extends FunctionalTestCase
     public function testTrackDownloads(): void
     {
         $this->client->request('POST', '/downloads', [], [], [
-            'HTTP_HOST' => 'repo.repman.wip',
+            'HTTP_HOST' => "repo.$this->domain",
         ], (string) json_encode([
             'downloads' => [
                 [
@@ -226,7 +239,7 @@ final class ProxyControllerTest extends FunctionalTestCase
     public function testTrackDownloadsInvalidRequest(): void
     {
         $this->client->request('POST', '/downloads', [], [], [
-            'HTTP_HOST' => 'repo.repman.wip',
+            'HTTP_HOST' => "repo.$this->domain",
         ], 'invalid');
 
         self::assertEquals(Response::HTTP_BAD_REQUEST, $this->client->getResponse()->getStatusCode());
