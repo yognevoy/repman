@@ -133,4 +133,25 @@ final class PackageTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $version->setPackage($this->package);
     }
+
+    public function testPackageIsNotArchivedByDefault(): void
+    {
+        self::assertFalse($this->package->isArchived());
+    }
+
+    public function testPackageCanBeArchived(): void
+    {
+        $this->package->archive();
+
+        self::assertTrue($this->package->isArchived());
+    }
+
+    public function testPackageCanBeUnarchived(): void
+    {
+        $this->package->archive();
+        self::assertTrue($this->package->isArchived());
+
+        $this->package->unarchive();
+        self::assertFalse($this->package->isArchived());
+    }
 }
