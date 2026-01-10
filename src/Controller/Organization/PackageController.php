@@ -178,21 +178,28 @@ final class PackageController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
 
-            $this->messageBus->dispatch(new Update(
-                $package->id(),
-                $data['url'],
-                $data['keepLastReleases'],
-                $data['enableSecurityScan'],
-                $data['locked'] ?? false,
-                $data['lockedVersion'] ?? null,
-                !empty($data['lockedUntil']) ? new \DateTimeImmutable($data['lockedUntil']) : null
-            ));
+            try {
+                $this->messageBus->dispatch(new Update(
+                    $package->id(),
+                    $data['url'],
+                    $data['keepLastReleases'],
+                    $data['enableSecurityScan'],
+                    $data['locked'] ?? false,
+                    $data['lockedVersion'] ?? null,
+                    !empty($data['lockedUntil']) ? new \DateTimeImmutable($data['lockedUntil']) : null
+                ));
 
-            $this->messageBus->dispatch(new SynchronizePackage($package->id()));
+                $this->messageBus->dispatch(new SynchronizePackage($package->id()));
 
-            $this->addFlash('success', 'Package will be synchronized in the background');
+                $this->addFlash('success', 'Package will be synchronized in the background');
 
-            return $this->redirectToRoute('organization_packages', ['organization' => $organization->alias()]);
+                return $this->redirectToRoute('organization_packages', ['organization' => $organization->alias()]);
+            } catch (\RuntimeException|\InvalidArgumentException $exception) {
+                $this->addFlash('danger', sprintf(
+                    '%s',
+                    $exception->getPrevious()->getMessage()
+                ));
+            }
         }
 
         return $this->render('organization/package/edit.html.twig', [

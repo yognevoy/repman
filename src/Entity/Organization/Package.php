@@ -464,6 +464,10 @@ class Package
 
     public function lock(?string $lockedVersion, ?\DateTimeImmutable $lockedUntil): void
     {
+        if ($lockedVersion === null && $lockedUntil === null) {
+            throw new \InvalidArgumentException('Either locked version or locked until date must be provided when locking a package.');
+        }
+
         $this->locked = true;
         $this->lockedVersion = $lockedVersion;
         $this->lockedUntil = $lockedUntil;
