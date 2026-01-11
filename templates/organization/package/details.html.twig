@@ -108,20 +108,17 @@
             </div>
         </div>
 
-        {% if package.isLocked() %}
+        {% if package.latestReleaseDate %}
             <div class="row">
-                {% if package.lockedVersion() %}
-                    <div class="col-3">
-                        <h4>Max Version</h4>
-                        <p>{{ package.lockedVersion() }}</p>
-                    </div>
-                {% endif %}
-                {% if package.lockedUntil() %}
-                    <div class="col-3">
-                        <h4>Lock Until</h4>
-                        <p>{{ package.lockedUntil()|date('Y-m-d') }}</p>
-                    </div>
-                {% endif %}
+                <div class="col-6">
+                    <h4>Latest version</h4>
+                    <p>
+                        {{ package.latestReleasedVersion }} (released:
+                        <span data-toggle="tooltip"
+                              title="{{ package.latestReleaseDate|date_time_utc }} ({{ gmt_offset() }})">
+                            {{ package.latestReleaseDate|date_time_utc|time_diff }}</span>)
+                    </p>
+                </div>
                 <div class="col-6">
                     <h4>Composer require command</h4>
                     <div class="row">
@@ -138,17 +135,20 @@
             </div>
         {% endif %}
 
-        {% if package.latestReleaseDate %}
+        {% if package.isLocked() %}
             <div class="row">
-                <div class="col-6">
-                    <h4>Latest version</h4>
-                    <p>
-                        {{ package.latestReleasedVersion }} (released:
-                        <span data-toggle="tooltip"
-                              title="{{ package.latestReleaseDate|date_time_utc }} ({{ gmt_offset() }})">
-                            {{ package.latestReleaseDate|date_time_utc|time_diff }}</span>)
-                    </p>
-                </div>
+                {% if package.lockedVersion() %}
+                    <div class="col-3">
+                        <h4>Max Version</h4>
+                        <p>{{ package.lockedVersion() }}</p>
+                    </div>
+                {% endif %}
+                {% if package.lockedUntil() %}
+                    <div class="col-3">
+                        <h4>Lock Until</h4>
+                        <p>{{ package.lockedUntil()|date('Y-m-d') }}</p>
+                    </div>
+                {% endif %}
             </div>
         {% endif %}
 
