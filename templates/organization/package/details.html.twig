@@ -108,16 +108,15 @@
             </div>
         </div>
 
-        {% if package.latestReleaseDate %}
+        {% if package.isLocked() %}
             <div class="row">
-                <div class="col-6">
-                    <h4>Latest version</h4>
-                    <p>
-                        {{ package.latestReleasedVersion }} (released:
-                        <span data-toggle="tooltip"
-                              title="{{ package.latestReleaseDate|date_time_utc }} ({{ gmt_offset() }})">
-                            {{ package.latestReleaseDate|date_time_utc|time_diff }}</span>)
-                    </p>
+                <div class="col-3">
+                    <h4>Max Version</h4>
+                    <p>{{ package.lockedVersion() ?: '-' }}</p>
+                </div>
+                <div class="col-3">
+                    <h4>Lock Until</h4>
+                    <p>{{ package.lockedUntil() ? package.lockedUntil()|date('Y-m-d') : '-' }}</p>
                 </div>
                 <div class="col-6">
                     <h4>Composer require command</h4>
@@ -125,7 +124,8 @@
                         <div class="input-group col-11">
                             <input id="composer-require" class="form-control" readonly value="composer require {{ package.name }}"/>
                             <span class="input-group-append">
-                        <button data-clipboard-target="#composer-require" class="copy-to-clipboard btn btn-primary p-2" type="button" data-toggle="tooltip" data-placement="top" title="Copy to clipboard">
+                        <button data-clipboard-target="#composer-require" class="copy-to-clipboard btn btn-primary p-2" type="button" data-toggle="tooltip"
+                                data-placement="top" title="Copy to clipboard">
                             {% include 'svg/clipboard.svg' %}
                         </button>
                     </span>
@@ -135,22 +135,17 @@
             </div>
         {% endif %}
 
-        {% if package.isLocked() %}
-            <div class="row">
-                {% if package.lockedVersion() %}
-                    <div class="col-3">
-                        <h4>Max Version</h4>
-                        <p>{{ package.lockedVersion() }}</p>
-                    </div>
-                {% endif %}
-                {% if package.lockedUntil() %}
-                    <div class="col-3">
-                        <h4>Lock Until</h4>
-                        <p>{{ package.lockedUntil()|date('Y-m-d') }}</p>
-                    </div>
-                {% endif %}
+        <div class="row">
+            <div class="col-6">
+                <h4>Latest version</h4>
+                <p>
+                    {{ package.latestReleasedVersion }} (released:
+                    <span data-toggle="tooltip"
+                          title="{{ package.latestReleaseDate|date_time_utc }} ({{ gmt_offset() }})">
+                            {{ package.latestReleaseDate|date_time_utc|time_diff }}</span>)
+                </p>
             </div>
-        {% endif %}
+        </div>
 
         <hr />
 
