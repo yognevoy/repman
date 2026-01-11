@@ -2,8 +2,11 @@ version: '3.4'
 
 services:
   database:
+    env_file: .env.docker.test
     environment:
-      POSTGRES_DB: test
+      POSTGRES_USER: ${POSTGRES_USER:-main}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-main}
+      POSTGRES_DB: ${POSTGRES_DB:-test}
     volumes:
       - postgres-test-data:/var/lib/postgresql/data
 
