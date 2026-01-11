@@ -33,6 +33,7 @@ services:
       bash -c 'chmod -R 777 /app/var &&
       touch /app/var/log/${APP_ENV}.log &&
       chmod 666 /app/var/log/${APP_ENV}.log &&
+      mkdir /app/var/dev &&
       chmod 666 /app/var/dev/ &&
       bin/console d:m:m --no-interaction &&
       bin/console messenger:setup-transports --no-interaction &&
