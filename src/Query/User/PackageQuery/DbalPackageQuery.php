@@ -48,7 +48,7 @@ final class DbalPackageQuery implements PackageQuery
             $params['term'] = '%'.$filter->getSearchTerm().'%';
         } elseif ($filter->hasArchived()) {
             $filterSQL = ' AND archived = :archived';
-            $params['archived'] = $filter->isArchived();
+            $params['archived'] = $filter->isArchived() ? 'true' : 'false';
         }
 
         $sortSQL = 'name ASC';
@@ -113,7 +113,7 @@ final class DbalPackageQuery implements PackageQuery
 
         if ($filter->hasArchived()) {
             $filterSQL = ' AND archived = :archived';
-            $params['archived'] = $filter->isArchived();
+            $params['archived'] = $filter->isArchived() ? 'true' : 'false';
         }
 
         return array_map(function (array $data): PackageName {
