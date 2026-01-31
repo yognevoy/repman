@@ -17,6 +17,10 @@ final class Config
 
     public const TECHNICAL_EMAIL = 'technical_email';
 
+    public const INVITE_MODE = 'invite_mode';
+    public const INVITE_MODE_EMAIL = 'email';
+    public const INVITE_MODE_DIRECT = 'direct';
+
     private ConfigQuery $configQuery;
     private CacheInterface $cache;
 
@@ -66,6 +70,11 @@ final class Config
     public function isTechnicalEmailSet(): bool
     {
         return trim((string) $this->get(self::TECHNICAL_EMAIL)) !== '';
+    }
+
+    public function isDirectUserAdditionEnabled(): bool
+    {
+        return $this->get(self::INVITE_MODE) === self::INVITE_MODE_DIRECT;
     }
 
     /**

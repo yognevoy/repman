@@ -67,6 +67,18 @@ class ConfigType extends AbstractType
                     'data-style' => 'btn-secondary',
                 ],
             ])
+            ->add(Config::INVITE_MODE, ChoiceType::class, [
+                'choices' => [
+                    'Email invitation' => Config::INVITE_MODE_EMAIL,
+                    'Direct addition' => Config::INVITE_MODE_DIRECT,
+                ],
+                'label' => 'User invitation mode',
+                'help' => 'Choose how users are added to organizations: via email invitation or direct addition',
+                'attr' => [
+                    'class' => 'form-control selectpicker',
+                    'data-style' => 'btn-secondary',
+                ],
+            ])
             ->add('technical_email', EmailType::class, [
                 'required' => false,
                 'help' => 'Fill in your email address to receive software updates',
