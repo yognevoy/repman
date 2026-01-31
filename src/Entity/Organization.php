@@ -204,6 +204,17 @@ class Organization
         $this->invitations->removeElement($invitation);
     }
 
+    public function addMember(User $user, string $role = Member::ROLE_MEMBER): void
+    {
+        if ($this->members->exists(fn (int $key, Member $member) => $member->userId()->equals($user->id()))) {
+            return;
+        }
+
+        $member = new Member(Uuid::uuid4(), $user, $this, $role);
+        $this->members->add($member);
+        $user->addMembership($member);
+    }
+
     public function removeMember(User $user): void
     {
         if ($this->isLastOwner($user)) {

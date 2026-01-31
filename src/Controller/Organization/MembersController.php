@@ -7,15 +7,18 @@ namespace Buddy\Repman\Controller\Organization;
 use Buddy\Repman\Form\Type\Organization\InviteMemberType;
 use Buddy\Repman\Form\Type\Organization\Member\ChangeRoleType;
 use Buddy\Repman\Message\Organization\Member\AcceptInvitation;
+use Buddy\Repman\Message\Organization\Member\AddMember;
 use Buddy\Repman\Message\Organization\Member\ChangeRole;
 use Buddy\Repman\Message\Organization\Member\InviteUser;
 use Buddy\Repman\Message\Organization\Member\RemoveInvitation;
 use Buddy\Repman\Message\Organization\Member\RemoveMember;
+use Buddy\Repman\Query\Admin\UserQuery;
 use Buddy\Repman\Query\Filter;
 use Buddy\Repman\Query\User\Model\Organization;
 use Buddy\Repman\Query\User\Model\Organization\Member;
 use Buddy\Repman\Query\User\OrganizationQuery;
 use Buddy\Repman\Security\Model\User;
+use Buddy\Repman\Service\Config;
 use Ramsey\Uuid\Uuid;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,15 +33,21 @@ final class MembersController extends AbstractController
     private OrganizationQuery $organizations;
     private TokenStorageInterface $tokenStorage;
     private MessageBusInterface $messageBus;
+    private Config $config;
+    private UserQuery $users;
 
     public function __construct(
         OrganizationQuery $organizations,
         TokenStorageInterface $tokenStorage,
-        MessageBusInterface $messageBus
+        MessageBusInterface $messageBus,
+        Config $config,
+        UserQuery $users
     ) {
         $this->organizations = $organizations;
         $this->tokenStorage = $tokenStorage;
         $this->messageBus = $messageBus;
+        $this->config = $config;
+        $this->users = $users;
     }
 
     /**
@@ -97,16 +106,32 @@ final class MembersController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->messageBus->dispatch(new InviteUser(
-                $email = $form->get('email')->getData(),
-                $form->get('role')->getData(),
-                $organization->id(),
-                Uuid::uuid4()->toString()
-            ));
+            if ($this->config->isDirectUserAdditionEnabled()) {
+                $userId = $form->get('user_id')->getData();
+                $role = $form->get('role')->getData();
 
-            $this->addFlash('success', sprintf('User "%s" has been successfully invited.', $email));
+                $this->messageBus->dispatch(new AddMember(
+                    $organization->id(),
+                    $userId,
+                    $role
+                ));
 
-            return $this->redirectToRoute('organization_invitations', ['organization' => $organization->alias()]);
+                $userModel = $this->users->getById($userId);
+                $email = $userModel->get()->email();
+
+                $this->addFlash('success', sprintf('User "%s" has been successfully added to the organization.', $email));
+            } else {
+                $this->messageBus->dispatch(new InviteUser(
+                    $email = $form->get('email')->getData(),
+                    $form->get('role')->getData(),
+                    $organization->id(),
+                    Uuid::uuid4()->toString()
+                ));
+
+                $this->addFlash('success', sprintf('User "%s" has been successfully invited.', $email));
+            }
+
+            return $this->redirectToRoute('organization_members', ['organization' => $organization->alias()]);
         }
 
         return $this->render('organization/member/invite.twig', [
