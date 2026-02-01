@@ -33,8 +33,8 @@ final class UpdateHandlerTest extends TestCase
         $keepLastReleases = 5;
         $enableSecurityScan = true;
         $locked = true;
-        $lockedVersion = '1.2.3';
-        $lockedUntil = new \DateTimeImmutable();
+        $maxVersion = '1.2.3';
+        $maxReleaseDate = new \DateTimeImmutable();
 
         $package = $this->createMock(Package::class);
         $package->expects(self::once())
@@ -44,8 +44,8 @@ final class UpdateHandlerTest extends TestCase
                 $keepLastReleases,
                 $enableSecurityScan,
                 $locked,
-                $lockedVersion,
-                $lockedUntil
+                $maxVersion,
+                $maxReleaseDate
             );
 
         $this->packages->expects(self::once())
@@ -59,8 +59,8 @@ final class UpdateHandlerTest extends TestCase
             $keepLastReleases,
             $enableSecurityScan,
             $locked,
-            $lockedVersion,
-            $lockedUntil
+            $maxVersion,
+            $maxReleaseDate
         );
 
         ($this->handler)($message);

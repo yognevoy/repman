@@ -90,7 +90,7 @@ final class PackageLockFilterTest extends TestCase
         self::assertEquals($packages, $result);
     }
 
-    public function testFilterRemovesVersionsGreaterThanLockedVersion(): void
+    public function testFilterRemovesVersionsGreaterThanMaxVersion(): void
     {
         $organizationId = 'org-123';
         $packages = [
@@ -141,7 +141,7 @@ final class PackageLockFilterTest extends TestCase
         self::assertEquals($expected, $result);
     }
 
-    public function testFilterRemovesVersionsReleasedAfterLockedUntil(): void
+    public function testFilterRemovesVersionsReleasedAfterMaxReleaseDate(): void
     {
         $organizationId = 'org-123';
         $packages = [
@@ -152,7 +152,7 @@ final class PackageLockFilterTest extends TestCase
             ],
         ];
 
-        $lockedUntil = new \DateTimeImmutable('2024-06-01T00:00:00+00:00');
+        $maxReleaseDate = new \DateTimeImmutable('2024-06-01T00:00:00+00:00');
 
         $lockedPackage = new Package(
             'pkg-123',
@@ -173,7 +173,7 @@ final class PackageLockFilterTest extends TestCase
             false,
             true,
             null,
-            $lockedUntil
+            $maxReleaseDate
         );
 
         $this->packageQuery->expects(self::once())
@@ -247,7 +247,7 @@ final class PackageLockFilterTest extends TestCase
         self::assertTrue($result);
     }
 
-    public function testIsVersionAllowedReturnsFalseForVersionGreaterThanLockedVersion(): void
+    public function testIsVersionAllowedReturnsFalseForVersionGreaterThanMaxVersion(): void
     {
         $organizationId = 'org-123';
         $packageName = 'test/package';
@@ -285,7 +285,7 @@ final class PackageLockFilterTest extends TestCase
         self::assertFalse($result);
     }
 
-    public function testIsVersionAllowedReturnsTrueForVersionLessThanOrEqualToLockedVersion(): void
+    public function testIsVersionAllowedReturnsTrueForVersionLessThanOrEqualToMaxVersion(): void
     {
         $organizationId = 'org-123';
         $packageName = 'test/package';

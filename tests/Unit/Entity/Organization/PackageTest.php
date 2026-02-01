@@ -158,32 +158,32 @@ final class PackageTest extends TestCase
     public function testPackageIsNotLockedByDefault(): void
     {
         self::assertFalse($this->package->isLocked());
-        self::assertNull($this->package->lockedVersion());
-        self::assertNull($this->package->lockedUntil());
+        self::assertNull($this->package->maxVersion());
+        self::assertNull($this->package->maxReleaseDate());
     }
 
     public function testPackageCanBeLocked(): void
     {
-        $lockedVersion = '1.2.3';
-        $lockedUntil = new \DateTimeImmutable();
+        $maxVersion = '1.2.3';
+        $maxReleaseDate = new \DateTimeImmutable();
 
-        $this->package->lock($lockedVersion, $lockedUntil);
+        $this->package->lock($maxVersion, $maxReleaseDate);
 
         self::assertTrue($this->package->isLocked());
-        self::assertSame($lockedVersion, $this->package->lockedVersion());
-        self::assertSame($lockedUntil, $this->package->lockedUntil());
+        self::assertSame($maxVersion, $this->package->maxVersion());
+        self::assertSame($maxReleaseDate, $this->package->maxReleaseDate());
     }
 
     public function testPackageCanBeUnlocked(): void
     {
-        $lockedVersion = '1.2.3';
-        $lockedUntil = new \DateTimeImmutable();
-        $this->package->lock($lockedVersion, $lockedUntil);
+        $maxVersion = '1.2.3';
+        $maxReleaseDate = new \DateTimeImmutable();
+        $this->package->lock($maxVersion, $maxReleaseDate);
 
         $this->package->unlock();
 
         self::assertFalse($this->package->isLocked());
-        self::assertNull($this->package->lockedVersion());
-        self::assertNull($this->package->lockedUntil());
+        self::assertNull($this->package->maxVersion());
+        self::assertNull($this->package->maxReleaseDate());
     }
 }
