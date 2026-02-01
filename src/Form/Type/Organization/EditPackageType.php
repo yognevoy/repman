@@ -61,7 +61,7 @@ class EditPackageType extends AbstractType
                 'help' => 'Maximum version allowed. Leave empty to disable version lock.',
             ])
             ->add('lockedUntil', TextType::class, [
-                'label' => 'Lock until date (optional)',
+                'label' => 'Lock until (optional)',
                 'required' => false,
                 'help' => 'Date until which the package will be locked. Leave empty to disable date lock.',
             ])
