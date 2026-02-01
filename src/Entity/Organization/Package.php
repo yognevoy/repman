@@ -111,12 +111,12 @@ class Package
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private ?string $lockedVersion = null;
+    private ?string $maxVersion = null;
 
     /**
      * @ORM\Column(type="datetime_immutable", nullable=true)
      */
-    private ?\DateTimeImmutable $lockedUntil = null;
+    private ?\DateTimeImmutable $maxReleaseDate = null;
 
     /**
      * @ORM\Column(type="json", nullable=true)
@@ -412,8 +412,8 @@ class Package
         int $keepLastReleases,
         bool $enableSecurityScan,
         bool $locked = false,
-        ?string $lockedVersion = null,
-        ?\DateTimeImmutable $lockedUntil = null
+        ?string $maxVersion = null,
+        ?\DateTimeImmutable $maxReleaseDate = null
     ): void
     {
         $this->keepLastReleases = $keepLastReleases;
@@ -421,7 +421,7 @@ class Package
         $this->enableSecurityScan = $enableSecurityScan;
 
         if ($locked) {
-            $this->lock($lockedVersion, $lockedUntil);
+            $this->lock($maxVersion, $maxReleaseDate);
         } else {
             $this->unlock();
         }
@@ -462,22 +462,22 @@ class Package
         $this->archived = false;
     }
 
-    public function lock(?string $lockedVersion, ?\DateTimeImmutable $lockedUntil): void
+    public function lock(?string $maxVersion, ?\DateTimeImmutable $maxReleaseDate): void
     {
-        if ($lockedVersion === null && $lockedUntil === null) {
+        if ($maxVersion === null && $maxReleaseDate === null) {
             throw new \InvalidArgumentException('Either locked version or locked until date must be provided when locking a package.');
         }
 
         $this->locked = true;
-        $this->lockedVersion = $lockedVersion;
-        $this->lockedUntil = $lockedUntil;
+        $this->maxVersion = $maxVersion;
+        $this->maxReleaseDate = $maxReleaseDate;
     }
 
     public function unlock(): void
     {
         $this->locked = false;
-        $this->lockedVersion = null;
-        $this->lockedUntil = null;
+        $this->maxVersion = null;
+        $this->maxReleaseDate = null;
     }
 
     public function isLocked(): bool
@@ -485,13 +485,13 @@ class Package
         return $this->locked;
     }
 
-    public function lockedVersion(): ?string
+    public function maxVersion(): ?string
     {
-        return $this->lockedVersion;
+        return $this->maxVersion;
     }
 
-    public function lockedUntil(): ?\DateTimeImmutable
+    public function maxReleaseDate(): ?\DateTimeImmutable
     {
-        return $this->lockedUntil;
+        return $this->maxReleaseDate;
     }
 }

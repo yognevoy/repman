@@ -22,8 +22,8 @@ final class PackageDetails
     private bool $enableSecurityScan;
     private bool $archived = false;
     private bool $locked;
-    private ?string $lockedVersion;
-    private ?\DateTimeImmutable $lockedUntil;
+    private ?string $maxVersion;
+    private ?\DateTimeImmutable $maxReleaseDate;
 
     public function __construct(
         string $id,
@@ -41,8 +41,8 @@ final class PackageDetails
         bool $enableSecurityScan = true,
         bool $archived = false,
         bool $locked = false,
-        ?string $lockedVersion = null,
-        ?\DateTimeImmutable $lockedUntil = null
+        ?string $maxVersion = null,
+        ?\DateTimeImmutable $maxReleaseDate = null
     ) {
         $this->id = $id;
         $this->organizationId = $organizationId;
@@ -59,8 +59,8 @@ final class PackageDetails
         $this->enableSecurityScan = $enableSecurityScan;
         $this->archived = $archived;
         $this->locked = $locked;
-        $this->lockedVersion = $lockedVersion;
-        $this->lockedUntil = $lockedUntil;
+        $this->maxVersion = $maxVersion;
+        $this->maxReleaseDate = $maxReleaseDate;
     }
 
     public function id(): string
@@ -143,13 +143,13 @@ final class PackageDetails
         return $this->locked;
     }
 
-    public function lockedVersion(): ?string
+    public function maxVersion(): ?string
     {
-        return $this->lockedVersion;
+        return $this->maxVersion;
     }
 
-    public function lockedUntil(): ?\DateTimeImmutable
+    public function maxReleaseDate(): ?\DateTimeImmutable
     {
-        return $this->lockedUntil;
+        return $this->maxReleaseDate;
     }
 }

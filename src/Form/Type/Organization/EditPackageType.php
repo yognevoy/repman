@@ -55,15 +55,15 @@ class EditPackageType extends AbstractType
                 'required' => true,
                 'help' => 'Enable lock to restrict package versions',
             ])
-            ->add('lockedVersion', TextType::class, [
-                'label' => 'Lock to version (optional)',
+            ->add('maxVersion', TextType::class, [
+                'label' => 'Max version (optional)',
                 'required' => false,
                 'help' => 'Maximum version allowed. Leave empty to disable version lock.',
             ])
-            ->add('lockedUntil', TextType::class, [
-                'label' => 'Lock until (optional)',
+            ->add('maxReleaseDate', TextType::class, [
+                'label' => 'Max release date (optional)',
                 'required' => false,
-                'help' => 'Date until which the package will be locked. Leave empty to disable date lock.',
+                'help' => 'Date of release after which the package will be locked. Leave empty to disable date lock.',
             ])
             ->add('Update', SubmitType::class);
     }

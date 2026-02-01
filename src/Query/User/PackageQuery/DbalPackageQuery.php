@@ -88,8 +88,8 @@ final class DbalPackageQuery implements PackageQuery
                 p.enable_security_scan,
                 p.archived,
                 p.locked,
-                p.locked_version,
-                p.locked_until
+                p.max_version,
+                p.max_release_date
             FROM organization_package p '.$joinSQL
                 .'WHERE p.organization_id = :organization_id
             '.$filterSQL.'
@@ -177,8 +177,8 @@ final class DbalPackageQuery implements PackageQuery
                 enable_security_scan,
                 archived,
                 locked,
-                locked_version,
-                locked_until
+                max_version,
+                max_release_date
             FROM "organization_package"
             WHERE id = :id', [
             'id' => $id,
@@ -215,8 +215,8 @@ final class DbalPackageQuery implements PackageQuery
                 keep_last_releases,
                 enable_security_scan,
                 archived,
-                locked_version,
-                locked_until,
+                max_version,
+                max_release_date,
                 locked
             FROM "organization_package"
             WHERE organization_id = :organization_id AND name = :name', [
@@ -258,8 +258,8 @@ final class DbalPackageQuery implements PackageQuery
                 enable_security_scan,
                 archived,
                 locked,
-                locked_version,
-                locked_until
+                max_version,
+                max_release_date
             FROM "organization_package"
             WHERE id = :id', [
             'id' => $id,
@@ -499,8 +499,8 @@ final class DbalPackageQuery implements PackageQuery
             $data['enable_security_scan'] ?? true,
             $data['archived'] ?? false,
             $data['locked'] ?? false,
-            $data['locked_version'],
-            $data['locked_until'] !== null ? new \DateTimeImmutable($data['locked_until']) : null
+            $data['max_version'],
+            $data['max_release_date'] !== null ? new \DateTimeImmutable($data['max_release_date']) : null
         );
     }
 
@@ -533,8 +533,8 @@ final class DbalPackageQuery implements PackageQuery
             $data['enable_security_scan'] ?? true,
             $data['archived'] ?? false,
             $data['locked'] ?? false,
-            $data['locked_version'],
-            $data['locked_until'] !== null ? new \DateTimeImmutable($data['locked_until']) : null
+            $data['max_version'],
+            $data['max_release_date'] !== null ? new \DateTimeImmutable($data['max_release_date']) : null
         );
     }
 

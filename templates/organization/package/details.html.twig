@@ -110,12 +110,12 @@
 
         <div class="row">
             <div class="col-3">
-                <h4>Lock to version</h4>
-                <p>{{ package.lockedVersion() ?: '-' }}</p>
+                <h4>Max version</h4>
+                <p>{{ package.maxVersion() ?: '-' }}</p>
             </div>
             <div class="col-3">
-                <h4>Lock Until</h4>
-                <p>{{ package.lockedUntil() ? package.lockedUntil()|date('Y-m-d') : '-' }}</p>
+                <h4>Max Release Date</h4>
+                <p>{{ package.maxReleaseDate() ? package.maxReleaseDate()|date('Y-m-d') : '-' }}</p>
             </div>
             <div class="col-6">
                 <h4>Composer require command</h4>

@@ -31,8 +31,8 @@ final class UpdateHandler implements MessageHandlerInterface
             $message->keepLastReleases(),
             $message->isEnabledSecurityScan(),
             $message->isLocked(),
-            $message->lockedVersion(),
-            $message->lockedUntil()
+            $message->maxVersion(),
+            $message->maxReleaseDate()
         );
     }
 }

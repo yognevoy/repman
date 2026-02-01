@@ -37,8 +37,8 @@ class PackageLockFilter
         foreach ($allPackages as $pkg) {
             if ($pkg->isLocked() && $pkg->name() !== null) {
                 $lockParams[$pkg->name()] = [
-                    'lockedVersion' => $pkg->lockedVersion(),
-                    'lockedUntil' => $pkg->lockedUntil(),
+                    'maxVersion' => $pkg->maxVersion(),
+                    'maxReleaseDate' => $pkg->maxReleaseDate(),
                 ];
             }
         }
@@ -48,19 +48,19 @@ class PackageLockFilter
                 foreach ($filteredPackages[$packageName] as $versionName => $versionData) {
                     $shouldRemove = false;
 
-                    if ($params['lockedVersion']) {
+                    if ($params['maxVersion']) {
                         $normalizedVersion = $this->versionParser->normalize($versionName);
-                        $normalizedLockedVersion = $this->versionParser->normalize($params['lockedVersion']);
+                        $normalizedMaxVersion = $this->versionParser->normalize($params['maxVersion']);
 
-                        if (version_compare($normalizedVersion, $normalizedLockedVersion, '>')) {
+                        if (version_compare($normalizedVersion, $normalizedMaxVersion, '>')) {
                             $shouldRemove = true;
                         }
                     }
 
-                    if ($params['lockedUntil'] && isset($versionData['time'])) {
+                    if ($params['maxReleaseDate'] && isset($versionData['time'])) {
                         try {
                             $versionDate = new \DateTimeImmutable($versionData['time']);
-                            if ($versionDate > $params['lockedUntil']) {
+                            if ($versionDate > $params['maxReleaseDate']) {
                                 $shouldRemove = true;
                             }
                         } catch (\Exception $e) {
@@ -100,25 +100,25 @@ class PackageLockFilter
             return true;
         }
 
-        $lockedVersion = $package->lockedVersion();
-        $lockedUntil = $package->lockedUntil();
+        $maxVersion = $package->maxVersion();
+        $maxReleaseDate = $package->maxReleaseDate();
 
-        if ($lockedVersion !== null) {
+        if ($maxVersion !== null) {
             $normalizedVersion = $this->versionParser->normalize($version);
-            $normalizedLockedVersion = $this->versionParser->normalize($lockedVersion);
+            $normalizedMaxVersion = $this->versionParser->normalize($maxVersion);
 
-            if (version_compare($normalizedVersion, $normalizedLockedVersion, '>')) {
+            if (version_compare($normalizedVersion, $normalizedMaxVersion, '>')) {
                 return false;
             }
         }
 
-        if ($lockedUntil !== null) {
+        if ($maxReleaseDate !== null) {
             $packageId = $package->id();
             $versionModels = $this->packageQuery->getVersions($packageId, new BaseFilter());
             foreach ($versionModels as $versionModel) {
                 if ($versionModel->version() === $version) {
                     $versionDate = $versionModel->date();
-                    if ($versionDate > $lockedUntil) {
+                    if ($versionDate > $maxReleaseDate) {
                         return false;
                     }
                     break;

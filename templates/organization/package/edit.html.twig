@@ -25,16 +25,16 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const lockField = document.querySelector('select[name="locked"]');
-            const versionGroup = document.querySelector('#lockedVersion').closest('.form-group');
-            const untilGroup = document.querySelector('#lockedUntil').closest('.form-group');
+            const versionGroup = document.querySelector('#maxVersion').closest('.form-group');
+            const dateGroup = document.querySelector('#maxReleaseDate').closest('.form-group');
 
             function toggleLockFields() {
                 if (lockField.value === '1') {
                     versionGroup.style.display = 'block';
-                    untilGroup.style.display = 'block';
+                    dateGroup.style.display = 'block';
                 } else {
                     versionGroup.style.display = 'none';
-                    untilGroup.style.display = 'none';
+                    dateGroup.style.display = 'none';
                 }
             }
 
@@ -43,7 +43,7 @@
 
             if (window.Litepicker) {
                 new Litepicker({
-                    element: document.getElementById('lockedUntil'),
+                    element: document.getElementById('maxReleaseDate'),
                     format: 'DD.MM.YYYY',
                     buttonText: {
                         previousMonth: `{% include "svg/chevron-left.svg" %}`,
