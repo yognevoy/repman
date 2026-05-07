@@ -6,6 +6,7 @@ x-restart-policy: &restart_policy
 services:
   database:
     << : *restart_policy
+    container_name: repman_database
     image: postgres:11.20-alpine
     logging:
       driver: none
@@ -27,6 +28,7 @@ services:
 
   app:
     << : *restart_policy
+    container_name: repman_app
     build:
       context: .
       dockerfile: Dockerfile
@@ -58,6 +60,7 @@ services:
 
   consumer:
     << : *restart_policy
+    container_name: repman_consumer
     build:
       context: .
       dockerfile: Dockerfile
@@ -75,6 +78,7 @@ services:
 
   cron:
     << : *restart_policy
+    container_name: repman_cron
     build:
       context: .
       dockerfile: Dockerfile
@@ -93,6 +97,7 @@ services:
 
   nginx:
     << : *restart_policy
+    container_name: repman_nginx
     build:
       context: ./docker/nginx
       dockerfile: Dockerfile
